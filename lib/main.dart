@@ -68,7 +68,7 @@ class _GamePageState extends State<GamePage> {
       // to allow calling Scaffold.of(context) so we can show a snackbar.
       body: Builder(builder: (BuildContext context) {
         return WebView(
-          initialUrl: 'https://playcurious.games/',
+          initialUrl: 'https://playcurious.games/games/crispr-crunch/?fps=1&debug=1',
           javascriptMode: JavascriptMode.unrestricted,
           onWebViewCreated: (WebViewController webViewController) {
             _controller.complete(webViewController);
