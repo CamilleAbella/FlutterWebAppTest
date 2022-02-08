@@ -11,29 +11,30 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+// import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webviewx/webviewx.dart';
 
 void main() => runApp(MaterialApp(home: GamePage()));
 
-const String blockchainBattle = '''
-<!DOCTYPE html>
-<html>
-  <head>
-    <title> Blockchain Battle - Episode 1 </title>
-  </head>
-<body>
-  <iframe 
-    src="https://playcurious.games/games/blockchain-battle/embed_fr.html?isOnDesktop=true&amp;endingScenes=%5B%22video2%22%5D" 
-    allowfullscreen="true" 
-    style="border: 0; 
-    aspect-ratio: 16/9" 
-    data-dashlane-frameid="57982058498" 
-    width="100%" 
-    height="100%">
-  </iframe>
-</body>
-</html>
-''';
+// const String blockchainBattle = '''
+// <!DOCTYPE html>
+// <html>
+//   <head>
+//     <title> Blockchain Battle - Episode 1 </title>
+//   </head>
+// <body>
+//   <iframe
+//     src="https://playcurious.games/games/blockchain-battle/embed_fr.html?isOnDesktop=true&amp;endingScenes=%5B%22video2%22%5D"
+//     allowfullscreen="true"
+//     style="border: 0;
+//     aspect-ratio: 16/9"
+//     data-dashlane-frameid="57982058498"
+//     width="100%"
+//     height="100%">
+//   </iframe>
+// </body>
+// </html>
+// ''';
 
 class GamePage extends StatefulWidget {
   @override
@@ -41,15 +42,16 @@ class GamePage extends StatefulWidget {
 }
 
 class _GamePageState extends State<GamePage> {
-  final Completer<WebViewController> _controller =
-  Completer<WebViewController>();
+  final Completer<WebViewXController> _controller = Completer<WebViewXController>();
+
+  Size get screenSize => MediaQuery.of(context).size;
 
   @override
   void initState() {
     super.initState();
-    if (Platform.isAndroid) {
-      WebView.platform = SurfaceAndroidWebView();
-    }
+    // if (Platform.isAndroid) {
+    //   WebView.platform = SurfaceAndroidWebView();
+    // }
   }
 
   @override
@@ -67,23 +69,28 @@ class _GamePageState extends State<GamePage> {
       // We're using a Builder here so we have a context that is below the Scaffold
       // to allow calling Scaffold.of(context) so we can show a snackbar.
       body: Builder(builder: (BuildContext context) {
-        return WebView(
-          initialUrl: 'https://playcurious.games/games/crispr-crunch/?fps=1&debug=1',
+        return WebViewX(
+          // initialUrl: 'https://playcurious.games/games/crispr-crunch/?fps=1&debug=1',
+          initialContent: 'https://playcurious.games/games/crispr-crunch/?fps=1&debug=1',
+          initialSourceType: SourceType.url,
           javascriptMode: JavascriptMode.unrestricted,
-          onWebViewCreated: (WebViewController webViewController) {
+          // onWebViewCreated: (WebViewController webViewController) {
+          //   _controller.complete(webViewController);
+          // },
+          onWebViewCreated: (WebViewXController webViewController) {
             _controller.complete(webViewController);
           },
-          onProgress: (int progress) {
-            print('WebView is loading (progress : $progress%)');
-          },
-          javascriptChannels: <JavascriptChannel>{
-            _toasterJavascriptChannel(context),
-          },
+          // onProgress: (int progress) {
+          //   print('WebView is loading (progress : $progress%)');
+          // },
+          // javascriptChannels: <JavascriptChannel>{
+          //   _toasterJavascriptChannel(context),
+          // },
           navigationDelegate: (NavigationRequest request) {
-            if (request.url.startsWith('https://www.youtube.com/')) {
-              print('blocking navigation to $request');
-              return NavigationDecision.prevent;
-            }
+            // if (request.url.startsWith('https://www.youtube.com/')) {
+            //   print('blocking navigation to $request');
+            //   return NavigationDecision.prevent;
+            // }
             print('allowing navigation to $request');
             return NavigationDecision.navigate;
           },
@@ -93,45 +100,47 @@ class _GamePageState extends State<GamePage> {
           onPageFinished: (String url) {
             print('Page finished loading: $url');
           },
-          gestureNavigationEnabled: true,
-          backgroundColor: const Color(0x00000000),
+          // gestureNavigationEnabled: true,
+          // backgroundColor: const Color(0x00000000),
+          width: screenSize.width,
+          height: screenSize.height,
         );
       }),
-      floatingActionButton: favoriteButton(),
+      // floatingActionButton: favoriteButton(),
     );
   }
 
-  JavascriptChannel _toasterJavascriptChannel(BuildContext context) {
-    return JavascriptChannel(
-        name: 'Toaster',
-        onMessageReceived: (JavascriptMessage message) {
-          // ignore: deprecated_member_use
-          Scaffold.of(context).showSnackBar(
-            SnackBar(content: Text(message.message)),
-          );
-        });
-  }
+  // JavascriptChannel _toasterJavascriptChannel(BuildContext context) {
+  //   return JavascriptChannel(
+  //       name: 'Toaster',
+  //       onMessageReceived: (JavascriptMessage message) {
+  //         // ignore: deprecated_member_use
+  //         Scaffold.of(context).showSnackBar(
+  //           SnackBar(content: Text(message.message)),
+  //         );
+  //       });
+  // }
 
-  Widget favoriteButton() {
-    return FutureBuilder<WebViewController>(
-        future: _controller.future,
-        builder: (BuildContext context,
-            AsyncSnapshot<WebViewController> controller) {
-          if (controller.hasData) {
-            return FloatingActionButton(
-              onPressed: () async {
-                final String url = (await controller.data!.currentUrl())!;
-                // ignore: deprecated_member_use
-                Scaffold.of(context).showSnackBar(
-                  SnackBar(content: Text('Favorited $url')),
-                );
-              },
-              child: const Icon(Icons.favorite),
-            );
-          }
-          return Container();
-        });
-  }
+  // Widget favoriteButton() {
+  //   return FutureBuilder<WebViewController>(
+  //       future: _controller.future,
+  //       builder: (BuildContext context,
+  //           AsyncSnapshot<WebViewController> controller) {
+  //         if (controller.hasData) {
+  //           return FloatingActionButton(
+  //             onPressed: () async {
+  //               final String url = (await controller.data!.currentUrl())!;
+  //               // ignore: deprecated_member_use
+  //               Scaffold.of(context).showSnackBar(
+  //                 SnackBar(content: Text('Favorited $url')),
+  //               );
+  //             },
+  //             child: const Icon(Icons.favorite),
+  //           );
+  //         }
+  //         return Container();
+  //       });
+  // }
 }
 
 enum MenuOptions {
@@ -153,15 +162,15 @@ enum MenuOptions {
 class SampleMenu extends StatelessWidget {
   SampleMenu(this.controller);
 
-  final Future<WebViewController> controller;
-  final CookieManager cookieManager = CookieManager();
+  final Future<WebViewXController> controller;
+  // final CookieManager cookieManager = CookieManager();
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<WebViewController>(
+    return FutureBuilder<WebViewXController>(
       future: controller,
       builder:
-          (BuildContext context, AsyncSnapshot<WebViewController> controller) {
+          (BuildContext context, AsyncSnapshot<WebViewXController> controller) {
         return PopupMenuButton<MenuOptions>(
           key: const ValueKey<String>('ShowPopupMenu'),
           onSelected: (MenuOptions value) {
@@ -172,9 +181,9 @@ class SampleMenu extends StatelessWidget {
               case MenuOptions.listCookies:
                 _onListCookies(controller.data!, context);
                 break;
-              case MenuOptions.clearCookies:
-                _onClearCookies(context);
-                break;
+              // case MenuOptions.clearCookies:
+              //   _onClearCookies(context);
+              //   break;
               case MenuOptions.addToCache:
                 _onAddToCache(controller.data!, context);
                 break;
@@ -184,24 +193,24 @@ class SampleMenu extends StatelessWidget {
               case MenuOptions.clearCache:
                 _onClearCache(controller.data!, context);
                 break;
-              case MenuOptions.navigationDelegate:
-                _onNavigationDelegateExample(controller.data!, context);
-                break;
-              case MenuOptions.doPostRequest:
-                _onDoPostRequest(controller.data!, context);
-                break;
-              case MenuOptions.loadLocalFile:
-                _onLoadLocalFileExample(controller.data!, context);
-                break;
-              case MenuOptions.loadFlutterAsset:
-                _onLoadFlutterAssetExample(controller.data!, context);
-                break;
-              case MenuOptions.loadHtmlString:
-                _onLoadHtmlStringExample(controller.data!, context);
-                break;
-              case MenuOptions.setCookie:
-                _onSetCookie(controller.data!, context);
-                break;
+              // case MenuOptions.navigationDelegate:
+              //   _onNavigationDelegateExample(controller.data!, context);
+              //   break;
+              // case MenuOptions.doPostRequest:
+              //   _onDoPostRequest(controller.data!, context);
+              //   break;
+              // case MenuOptions.loadLocalFile:
+              //   _onLoadLocalFileExample(controller.data!, context);
+              //   break;
+              // case MenuOptions.loadFlutterAsset:
+              //   _onLoadFlutterAssetExample(controller.data!, context);
+              //   break;
+              // case MenuOptions.loadHtmlString:
+              //   _onLoadHtmlStringExample(controller.data!, context);
+              //   break;
+              // case MenuOptions.setCookie:
+              //   _onSetCookie(controller.data!, context);
+              //   break;
             }
           },
           itemBuilder: (BuildContext context) => <PopupMenuItem<MenuOptions>>[
@@ -266,33 +275,33 @@ class SampleMenu extends StatelessWidget {
   }
 
   Future<void> _onShowUserAgent(
-      WebViewController controller, BuildContext context) async {
+      WebViewXController controller, BuildContext context) async {
     // Send a message with the user agent string to the Toaster JavaScript channel we registered
     // with the WebView.
-    await controller.runJavascript(
+    await controller.evalRawJavascript(
         'Toaster.postMessage("User Agent: " + navigator.userAgent);');
   }
 
   Future<void> _onListCookies(
-      WebViewController controller, BuildContext context) async {
+      WebViewXController controller, BuildContext context) async {
     final String cookies =
-    await controller.runJavascriptReturningResult('document.cookie');
+    await controller.evalRawJavascript('document.cookie');
     // ignore: deprecated_member_use
-    Scaffold.of(context).showSnackBar(SnackBar(
-      content: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          const Text('Cookies:'),
-          _getCookieList(cookies),
-        ],
-      ),
-    ));
+    // Scaffold.of(context).showSnackBar(SnackBar(
+    //   content: Column(
+    //     mainAxisAlignment: MainAxisAlignment.end,
+    //     mainAxisSize: MainAxisSize.min,
+    //     children: <Widget>[
+    //       const Text('Cookies:'),
+    //       _getCookieList(cookies),
+    //     ],
+    //   ),
+    // ));
   }
 
   Future<void> _onAddToCache(
-      WebViewController controller, BuildContext context) async {
-    await controller.runJavascript(
+      WebViewXController controller, BuildContext context) async {
+    await controller.evalRawJavascript(
         'caches.open("test_caches_entry"); localStorage["test_localStorage"] = "dummy_entry";');
     // ignore: deprecated_member_use
     Scaffold.of(context).showSnackBar(const SnackBar(
@@ -301,14 +310,14 @@ class SampleMenu extends StatelessWidget {
   }
 
   Future<void> _onListCache(
-      WebViewController controller, BuildContext context) async {
-    await controller.runJavascript('caches.keys()'
+      WebViewXController controller, BuildContext context) async {
+    await controller.evalRawJavascript('caches.keys()'
         '.then((cacheKeys) => JSON.stringify({"cacheKeys" : cacheKeys, "localStorage" : localStorage}))'
         '.then((caches) => Toaster.postMessage(caches))');
   }
 
   Future<void> _onClearCache(
-      WebViewController controller, BuildContext context) async {
+      WebViewXController controller, BuildContext context) async {
     await controller.clearCache();
     // ignore: deprecated_member_use
     Scaffold.of(context).showSnackBar(const SnackBar(
@@ -316,103 +325,103 @@ class SampleMenu extends StatelessWidget {
     ));
   }
 
-  Future<void> _onClearCookies(BuildContext context) async {
-    final bool hadCookies = await cookieManager.clearCookies();
-    String message = 'There were cookies. Now, they are gone!';
-    if (!hadCookies) {
-      message = 'There are no cookies.';
-    }
-    // ignore: deprecated_member_use
-    Scaffold.of(context).showSnackBar(SnackBar(
-      content: Text(message),
-    ));
-  }
-
-  Future<void> _onNavigationDelegateExample(
-      WebViewController controller, BuildContext context) async {
-    final String contentBase64 =
-    base64Encode(const Utf8Encoder().convert(blockchainBattle));
-    await controller.loadUrl('data:text/html;base64,$contentBase64');
-  }
-
-  Future<void> _onSetCookie(
-      WebViewController controller, BuildContext context) async {
-    await CookieManager().setCookie(
-      const WebViewCookie(
-          name: 'foo', value: 'bar', domain: 'httpbin.org', path: '/anything'),
-    );
-    await controller.loadUrl('https://httpbin.org/anything');
-  }
-
-  Future<void> _onDoPostRequest(
-      WebViewController controller, BuildContext context) async {
-    final WebViewRequest request = WebViewRequest(
-      uri: Uri.parse('https://httpbin.org/post'),
-      method: WebViewRequestMethod.post,
-      headers: <String, String>{'foo': 'bar', 'Content-Type': 'text/plain'},
-      body: Uint8List.fromList('Test Body'.codeUnits),
-    );
-    await controller.loadRequest(request);
-  }
-
-  Future<void> _onLoadLocalFileExample(
-      WebViewController controller, BuildContext context) async {
-    final String pathToIndex = await _prepareLocalFile();
-
-    await controller.loadFile(pathToIndex);
-  }
-
-  Future<void> _onLoadFlutterAssetExample(
-      WebViewController controller, BuildContext context) async {
-    await controller.loadFlutterAsset('assets/www/index.html');
-  }
-
-  Future<void> _onLoadHtmlStringExample(
-      WebViewController controller, BuildContext context) async {
-    await controller.loadHtmlString(blockchainBattle);
-  }
-
-  Widget _getCookieList(String cookies) {
-    if (cookies == null || cookies == '""') {
-      return Container();
-    }
-    final List<String> cookieList = cookies.split(';');
-    final Iterable<Text> cookieWidgets =
-    cookieList.map((String cookie) => Text(cookie));
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      mainAxisSize: MainAxisSize.min,
-      children: cookieWidgets.toList(),
-    );
-  }
-
-  static Future<String> _prepareLocalFile() async {
-    final String tmpDir = (await getTemporaryDirectory()).path;
-    final File indexFile = File(
-        <String>{tmpDir, 'www', 'index.html'}.join(Platform.pathSeparator));
-
-    await indexFile.create(recursive: true);
-    await indexFile.writeAsString(blockchainBattle);
-
-    return indexFile.path;
-  }
+  // Future<void> _onClearCookies(BuildContext context) async {
+  //   final bool hadCookies = await cookieManager.clearCookies();
+  //   String message = 'There were cookies. Now, they are gone!';
+  //   if (!hadCookies) {
+  //     message = 'There are no cookies.';
+  //   }
+  //   // ignore: deprecated_member_use
+  //   Scaffold.of(context).showSnackBar(SnackBar(
+  //     content: Text(message),
+  //   ));
+  // }
+  //
+  // Future<void> _onNavigationDelegateExample(
+  //     WebViewController controller, BuildContext context) async {
+  //   final String contentBase64 =
+  //   base64Encode(const Utf8Encoder().convert(blockchainBattle));
+  //   await controller.loadUrl('data:text/html;base64,$contentBase64');
+  // }
+  //
+  // Future<void> _onSetCookie(
+  //     WebViewController controller, BuildContext context) async {
+  //   await CookieManager().setCookie(
+  //     const WebViewCookie(
+  //         name: 'foo', value: 'bar', domain: 'httpbin.org', path: '/anything'),
+  //   );
+  //   await controller.loadUrl('https://httpbin.org/anything');
+  // }
+  //
+  // Future<void> _onDoPostRequest(
+  //     WebViewController controller, BuildContext context) async {
+  //   final WebViewRequest request = WebViewRequest(
+  //     uri: Uri.parse('https://httpbin.org/post'),
+  //     method: WebViewRequestMethod.post,
+  //     headers: <String, String>{'foo': 'bar', 'Content-Type': 'text/plain'},
+  //     body: Uint8List.fromList('Test Body'.codeUnits),
+  //   );
+  //   await controller.loadRequest(request);
+  // }
+  //
+  // Future<void> _onLoadLocalFileExample(
+  //     WebViewController controller, BuildContext context) async {
+  //   final String pathToIndex = await _prepareLocalFile();
+  //
+  //   await controller.loadFile(pathToIndex);
+  // }
+  //
+  // Future<void> _onLoadFlutterAssetExample(
+  //     WebViewController controller, BuildContext context) async {
+  //   await controller.loadFlutterAsset('assets/www/index.html');
+  // }
+  //
+  // Future<void> _onLoadHtmlStringExample(
+  //     WebViewController controller, BuildContext context) async {
+  //   await controller.loadHtmlString(blockchainBattle);
+  // }
+  //
+  // Widget _getCookieList(String cookies) {
+  //   if (cookies == null || cookies == '""') {
+  //     return Container();
+  //   }
+  //   final List<String> cookieList = cookies.split(';');
+  //   final Iterable<Text> cookieWidgets =
+  //   cookieList.map((String cookie) => Text(cookie));
+  //   return Column(
+  //     mainAxisAlignment: MainAxisAlignment.end,
+  //     mainAxisSize: MainAxisSize.min,
+  //     children: cookieWidgets.toList(),
+  //   );
+  // }
+  //
+  // static Future<String> _prepareLocalFile() async {
+  //   final String tmpDir = (await getTemporaryDirectory()).path;
+  //   final File indexFile = File(
+  //       <String>{tmpDir, 'www', 'index.html'}.join(Platform.pathSeparator));
+  //
+  //   await indexFile.create(recursive: true);
+  //   await indexFile.writeAsString(blockchainBattle);
+  //
+  //   return indexFile.path;
+  // }
 }
 
 class NavigationControls extends StatelessWidget {
   const NavigationControls(this._webViewControllerFuture)
       : assert(_webViewControllerFuture != null);
 
-  final Future<WebViewController> _webViewControllerFuture;
+  final Future<WebViewXController> _webViewControllerFuture;
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<WebViewController>(
+    return FutureBuilder<WebViewXController>(
       future: _webViewControllerFuture,
       builder:
-          (BuildContext context, AsyncSnapshot<WebViewController> snapshot) {
+          (BuildContext context, AsyncSnapshot<WebViewXController> snapshot) {
         final bool webViewReady =
             snapshot.connectionState == ConnectionState.done;
-        final WebViewController? controller = snapshot.data;
+        final WebViewXController? controller = snapshot.data;
         return Row(
           children: <Widget>[
             IconButton(
